@@ -38,7 +38,7 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    public function showRegister()
+    public function showRegistrationForm()
     {
         return view('auth.register');
     }
