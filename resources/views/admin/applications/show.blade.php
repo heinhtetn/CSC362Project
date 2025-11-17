@@ -35,15 +35,18 @@
             </div>
         </div>
 
+        {{-- Cover Letter File --}}
         @if ($application->cover_letter)
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Cover Letter</label>
-                <div class="bg-gray-50 p-4 rounded border">
-                    <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ $application->cover_letter }}</p>
-                </div>
+            <div class="mb-6 p-4 bg-gray-50 rounded border">
+                <h3 class="font-semibold mb-2">Cover Letter</h3>
+                <a href="{{ asset('storage/' . $application->cover_letter) }}" target="_blank"
+                    class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    View Cover Letter
+                </a>
             </div>
         @endif
 
+        {{-- Resume --}}
         @if ($resume)
             <div class="mb-6 p-4 bg-gray-50 rounded border">
                 <h3 class="font-semibold mb-2">Resume</h3>
@@ -54,6 +57,7 @@
             </div>
         @endif
 
+        {{-- Scheduled Interview --}}
         @if ($application->interview)
             <div class="mb-6 p-4 bg-blue-50 rounded border border-blue-200 flex justify-between items-start">
                 <div>
@@ -78,62 +82,63 @@
             </div>
         @endif
 
-    </div>
-
-    @if ($application->status === 'pending')
-        <div class="bg-white rounded shadow p-6">
-            <h3 class="text-xl font-bold mb-4">Take Action</h3>
-            <div class="space-y-4">
-                <!-- Schedule Interview -->
-                <div class="border rounded p-4">
-                    <h4 class="font-semibold mb-3">Schedule Interview</h4>
-                    <form action="{{ route('admin.applications.schedule-interview', $application) }}" method="POST">
-                        @csrf
-                        <div class="grid grid-cols-2 gap-4 mb-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
-                                <input type="datetime-local" name="scheduled_at" class="w-full border rounded px-3 py-2"
-                                    required>
+        @if ($application->status === 'pending')
+            <div class="bg-white rounded shadow p-6">
+                <h3 class="text-xl font-bold mb-4">Take Action</h3>
+                <div class="space-y-4">
+                    {{-- Schedule Interview --}}
+                    <div class="border rounded p-4">
+                        <h4 class="font-semibold mb-3">Schedule Interview</h4>
+                        <form action="{{ route('admin.applications.schedule-interview', $application) }}" method="POST">
+                            @csrf
+                            <div class="grid grid-cols-2 gap-4 mb-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                                    <input type="datetime-local" name="scheduled_at" class="w-full border rounded px-3 py-2"
+                                        value="{{ old('scheduled_at') }}" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                                    <input type="text" name="location" class="w-full border rounded px-3 py-2"
+                                        value="{{ old('location') }}" placeholder="e.g., Office, Online, etc.">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                                <input type="text" name="location" class="w-full border rounded px-3 py-2"
-                                    placeholder="e.g., Office, Online, etc.">
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2" placeholder="Additional info">{{ old('notes') }}</textarea>
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2" placeholder="Additional info"></textarea>
-                        </div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Schedule
-                            Interview</button>
-                    </form>
-                </div>
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Schedule
+                                Interview</button>
+                        </form>
+                    </div>
 
-                <!-- Accept Application -->
-                <div class="border rounded p-4">
-                    <h4 class="font-semibold mb-3">Accept Application</h4>
-                    <form action="{{ route('admin.applications.accept', $application) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Accept
-                            Application</button>
-                    </form>
-                </div>
+                    {{-- Accept Application --}}
+                    <div class="border rounded p-4">
+                        <h4 class="font-semibold mb-3">Accept Application</h4>
+                        <form action="{{ route('admin.applications.accept', $application) }}" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Accept
+                                Application</button>
+                        </form>
+                    </div>
 
-                <!-- Decline Application -->
-                <div class="border rounded p-4">
-                    <h4 class="font-semibold mb-3">Decline Application</h4>
-                    <form action="{{ route('admin.applications.decline', $application) }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
-                            <textarea name="reason" rows="2" class="w-full border rounded px-3 py-2" placeholder="Reason for declining"></textarea>
-                        </div>
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Decline
-                            Application</button>
-                    </form>
+                    {{-- Decline Application --}}
+                    <div class="border rounded p-4">
+                        <h4 class="font-semibold mb-3">Decline Application</h4>
+                        <form action="{{ route('admin.applications.decline', $application) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
+                                <textarea name="reason" rows="2" class="w-full border rounded px-3 py-2" placeholder="Reason for declining">{{ old('reason') }}</textarea>
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Decline
+                                Application</button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 @endsection

@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\SavedJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class FrontendController extends Controller
 {
@@ -53,25 +54,35 @@ class FrontendController extends Controller
         $job = Job::findOrFail($id);
         $user = Auth::guard('web')->user();
 
-        // Fetch job seeker profile
-        $jobSeeker = $user->jobSeeker;
+        // Validate cover letter file
+        $request->validate([
+            'cover_letter' => 'required|file|mimes:pdf,doc,docx|max:2048'
+        ]);
 
-        // Check for an existing application
+        // Upload file
+        $coverLetterFilePath = $request->file('cover_letter')->store('cover_letters', 'public');
+
+        // Check existing application
         $existing = Application::where('user_id', $user->id)
             ->where('job_id', $job->id)
             ->first();
 
         if ($existing && $existing->status !== 'rejected') {
-            // User cannot apply again unless previous application was rejected
             return redirect()->route('jobs.show', $id)
                 ->with('info', 'You have already applied for this job.');
         }
 
+        // Re-apply if rejected
         if ($existing && $existing->status === 'rejected') {
-            // Update the rejected application instead of creating a new one
+
+            // Remove old file if exists
+            if ($existing->cover_letter_file) {
+                Storage::disk('public')->delete($existing->cover_letter_file);
+            }
+
             $existing->update([
                 'status' => 'pending',
-                'cover_letter' => $request->input('cover_letter'),
+                'cover_letter_file' => $coverLetterFilePath,
                 'updated_at' => now(),
             ]);
 
@@ -79,17 +90,18 @@ class FrontendController extends Controller
                 ->with('success', 'You have re-applied successfully!');
         }
 
-        // No previous application, create a new one
+        // Create new application
         Application::create([
             'user_id' => $user->id,
             'job_id' => $job->id,
             'status' => 'pending',
-            'cover_letter' => $request->input('cover_letter'),
+            'cover_letter' => $coverLetterFilePath,
         ]);
 
         return redirect()->route('jobs.show', $id)
             ->with('success', 'Application submitted successfully!');
     }
+
 
 
 
