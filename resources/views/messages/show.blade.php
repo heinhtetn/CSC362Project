@@ -37,7 +37,8 @@
                 @if ($application->interview)
                     <div class="flex items-center gap-2 text-sm text-gray-600">
                         <span class="font-medium">Interview:</span>
-                        <span>{{ $application->interview->scheduled_at->format('F j, Y g:i A') }}</span>
+                        <span>{{ \Carbon\Carbon::parse($application->interview->scheduled_at)->format('F j, Y g:i A') }}
+                        </span>
                         @if ($application->interview->location)
                             <span class="text-gray-500">at {{ $application->interview->location }}</span>
                         @endif
