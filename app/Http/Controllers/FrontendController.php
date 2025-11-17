@@ -56,7 +56,7 @@ class FrontendController extends Controller
 
         // Validate cover letter file
         $request->validate([
-            'cover_letter' => 'required|file|mimes:pdf,doc,docx|max:2048'
+            'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
         ]);
 
         // Upload file
