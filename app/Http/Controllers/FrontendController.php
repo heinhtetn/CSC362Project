@@ -54,16 +54,15 @@ class FrontendController extends Controller
         $job = Job::findOrFail($id);
         $user = Auth::guard('web')->user();
 
+        // Validate cover letter only if file is uploaded
+        $request->validate([
+            'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+        ]);
 
-        // Upload file
+        // Upload file if provided
+        $coverLetterFilePath = null;
         if ($request->hasFile('cover_letter')) {
-            // Validate cover letter file
-            $request->validate([
-                'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
-            ]);
             $coverLetterFilePath = $request->file('cover_letter')->store('cover_letters', 'public');
-        } else {
-            $coverLetterFilePath = null;
         }
 
         // Check existing application
@@ -78,15 +77,14 @@ class FrontendController extends Controller
 
         // Re-apply if rejected
         if ($existing && $existing->status === 'rejected') {
-
             // Remove old file if exists
-            if ($existing->cover_letter_file) {
-                Storage::disk('public')->delete($existing->cover_letter_file);
+            if ($existing->cover_letter) {
+                Storage::disk('public')->delete($existing->cover_letter);
             }
 
             $existing->update([
                 'status' => 'pending',
-                'cover_letter_file' => $coverLetterFilePath,
+                'cover_letter' => $coverLetterFilePath, // update with new file or null
                 'updated_at' => now(),
             ]);
 
@@ -99,12 +97,13 @@ class FrontendController extends Controller
             'user_id' => $user->id,
             'job_id' => $job->id,
             'status' => 'pending',
-            'cover_letter' => $coverLetterFilePath,
+            'cover_letter' => $coverLetterFilePath, // nullable
         ]);
 
         return redirect()->route('jobs.show', $id)
             ->with('success', 'Application submitted successfully!');
     }
+
 
 
 
