@@ -54,13 +54,17 @@ class FrontendController extends Controller
         $job = Job::findOrFail($id);
         $user = Auth::guard('web')->user();
 
-        // Validate cover letter file
-        $request->validate([
-            'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
-        ]);
 
         // Upload file
-        $coverLetterFilePath = $request->file('cover_letter')->store('cover_letters', 'public');
+        if ($request->hasFile('cover_letter')) {
+            // Validate cover letter file
+            $request->validate([
+                'cover_letter' => 'nullable|file|mimes:pdf,doc,docx|max:2048'
+            ]);
+            $coverLetterFilePath = $request->file('cover_letter')->store('cover_letters', 'public');
+        } else {
+            $coverLetterFilePath = null;
+        }
 
         // Check existing application
         $existing = Application::where('user_id', $user->id)
