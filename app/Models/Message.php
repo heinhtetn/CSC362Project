@@ -13,17 +13,29 @@ class Message extends Model
     protected $fillable = [
         'sender_id',
         'receiver_id',
+        'application_id',
         'content',
-        'sent_at'
+        'type',
+        'is_read'
+    ];
+
+    protected $casts = [
+        'is_read' => 'boolean',
     ];
 
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        // Sender is always an Admin
+        return $this->belongsTo(Admin::class, 'sender_id');
     }
 
     public function receiver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'receiver_id');
+    }
+
+    public function application(): BelongsTo
+    {
+        return $this->belongsTo(Application::class);
     }
 }

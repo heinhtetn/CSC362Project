@@ -2,58 +2,71 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JobSeeker;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class JobSeekerController extends Controller
 {
-    public function index()
-    {
-        $jobSeekers = JobSeeker::with('user')->paginate(10);
-        return view('job_seekers.index', compact('jobSeekers'));
-    }
-
     public function create()
     {
-        $users = User::where('role', 'job_seeker')->get();
-        return view('job_seekers.create', compact('users'));
+        return view('jobseekers.create');
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'resume' => 'nullable|string',
-            'skills' => 'nullable|string',
-            'experience' => 'nullable|string'
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'phone'     => 'nullable|string|max:20',
+            'resume'    => 'nullable|mimes:pdf|max:2048', // 2MB max
         ]);
 
-        JobSeeker::create($validated);
-        return redirect()->route('job_seekers.index')->with('success', 'Job Seeker created.');
+        $data = $request->only(['full_name', 'phone']);
+
+        // Handle resume upload
+        if ($request->hasFile('resume')) {
+            $data['resume'] = $request->file('resume')->store('resumes', 'public');
+        }
+
+        auth()->user()->jobSeeker()->create($data);
+
+        $redirect = session('intended_url') ?? route('jobs.list');
+
+        return redirect($redirect)->with('success', 'Profile created successfully!');
     }
 
-    public function edit(JobSeeker $jobSeeker)
+    public function show()
     {
-        $users = User::where('role', 'job_seeker')->get();
-        return view('job_seekers.edit', compact('jobSeeker', 'users'));
+        $profile = auth()->user()->jobSeeker;
+
+        return view('jobseekers.profile', compact('profile'));
     }
 
-    public function update(Request $request, JobSeeker $jobSeeker)
+
+    public function edit()
     {
-        $validated = $request->validate([
-            'resume' => 'nullable|string',
-            'skills' => 'nullable|string',
-            'experience' => 'nullable|string'
+        $profile = auth()->user()->jobSeeker;
+
+        return view('jobseekers.edit', compact('profile'));
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'full_name' => 'required|string|max:255',
+            'phone'     => 'nullable|string|max:20',
+            'resume'    => 'nullable|mimes:pdf|max:2048', // PDF only
         ]);
 
-        $jobSeeker->update($validated);
-        return redirect()->route('job_seekers.index')->with('success', 'Job Seeker updated.');
-    }
+        $profile = auth()->user()->jobSeeker;
 
-    public function destroy(JobSeeker $jobSeeker)
-    {
-        $jobSeeker->delete();
-        return redirect()->route('job_seekers.index')->with('success', 'Deleted.');
+        $data = $request->only(['full_name', 'phone']);
+
+        // Replace old resume if new one uploaded
+        if ($request->hasFile('resume')) {
+            $data['resume'] = $request->file('resume')->store('resumes', 'public');
+        }
+
+        $profile->update($data);
+
+        return back()->with('success', 'Profile updated successfully!');
     }
 }

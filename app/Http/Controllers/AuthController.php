@@ -20,23 +20,35 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::guard('web')->attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('users.index');
+
+            // Check profile
+            if (!Auth::user()->jobSeeker) {
+                return redirect()->route('jobseeker.create')
+                    ->with('warning', 'Please complete your profile.');
+            }
+
+            return redirect()->intended(route('jobs.list'));
         }
 
+        // If login fails
         return back()->withErrors([
-            'email' => 'Invalid credentials.',
-        ]);
+            'email' => 'Invalid email or password.',
+        ])->withInput($request->only('email'));
     }
+
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('login');
+
+        return redirect()->route('web.login');
     }
+
 
     public function showRegistrationForm()
     {
@@ -53,6 +65,6 @@ class AuthController extends Controller
 
         User::create($request->all());
 
-        return redirect()->route('login')->with('success', 'Account created successfully.');
+        return redirect()->route('web.login')->with('success', 'Account created successfully.');
     }
 }

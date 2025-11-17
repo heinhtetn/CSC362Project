@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Job;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class JobController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth:admin');
     }
 
     public function index()
@@ -32,9 +33,12 @@ class JobController extends Controller
             'salary' => 'nullable|numeric',
         ]);
 
-        Job::create($request->all());
+        $data = $request->all();
+        $data['admin_id'] = Auth::guard('admin')->id();
 
-        return redirect()->route('jobs.index')->with('success', 'Job created successfully.');
+        Job::create($data);
+
+        return redirect()->route('admin.jobs.index')->with('success', 'Job created successfully.');
     }
 
     public function edit(Job $job)
@@ -53,12 +57,12 @@ class JobController extends Controller
 
         $job->update($request->all());
 
-        return redirect()->route('jobs.index')->with('success', 'Job updated successfully.');
+        return redirect()->route('admin.jobs.index')->with('success', 'Job updated successfully.');
     }
 
     public function destroy(Job $job)
     {
         $job->delete();
-        return redirect()->route('jobs.index')->with('success', 'Job deleted successfully.');
+        return redirect()->route('admin.jobs.index')->with('success', 'Job deleted successfully.');
     }
 }

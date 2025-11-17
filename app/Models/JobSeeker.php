@@ -14,9 +14,9 @@ class JobSeeker extends Model
 
     protected $fillable = [
         'user_id',
+        'full_name',
+        'phone',
         'resume',
-        'skills',
-        'experience'
     ];
 
     public function user(): BelongsTo
@@ -29,8 +29,13 @@ class JobSeeker extends Model
         return $this->hasMany(Application::class);
     }
 
-    public function savedJobs(): BelongsToMany
+    public function savedJobs()
     {
-        return $this->belongsToMany(Job::class, 'saved_jobs');
+        return $this->belongsToMany(
+            Job::class,
+            'saved_jobs',
+            'job_seeker_id', // pivot column for this model
+            'job_id'         // pivot column for the related model
+        );
     }
 }

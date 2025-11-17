@@ -12,7 +12,7 @@
 
     <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
         <h1 class="text-2xl font-bold mb-6 text-center">Admin Login</h1>
-        <form action="{{ route('login') }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.login.post') }}" method="POST" class="space-y-4">
             @csrf
             <div>
                 <label>Email</label>
@@ -24,8 +24,8 @@
             </div>
             <button class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Login</button>
         </form>
-        <p class="mt-4 text-center">No account? <a href="{{ route('register') }}"
-                class="text-blue-500 hover:underline">Sign Up</a></p>
+        <p class="mt-4 text-center">Back to <a href="{{ route('landing') }}"
+                class="text-blue-500 hover:underline">Home</a></p>
     </div>
 
 </body>

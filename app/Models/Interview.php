@@ -13,7 +13,8 @@ class Interview extends Model
     protected $fillable = [
         'application_id',
         'scheduled_at',
-        'mode',
+        'location',
+        'notes',
         'status'
     ];
 

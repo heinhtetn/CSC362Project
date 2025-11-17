@@ -11,8 +11,8 @@
 <body class="bg-gray-100 flex items-center justify-center h-screen">
 
     <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Admin Registration</h1>
-        <form action="{{ route('register') }}" method="POST" class="space-y-4">
+        <h1 class="text-2xl font-bold mb-6 text-center">Registration</h1>
+        <form action="{{ route('web.register.post') }}" method="POST" class="space-y-4">
             @csrf
             <div>
                 <label>Name</label>
@@ -32,7 +32,7 @@
             </div>
             <button class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Register</button>
         </form>
-        <p class="mt-4 text-center">Already have an account? <a href="{{ route('login') }}"
+        <p class="mt-4 text-center">Already have an account? <a href="{{ route('web.login') }}"
                 class="text-blue-500 hover:underline">Login</a></p>
     </div>
 

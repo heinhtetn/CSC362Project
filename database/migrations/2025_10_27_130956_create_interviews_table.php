@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->dateTime('scheduled_at');
             $table->string('location')->nullable();
             $table->text('notes')->nullable();
+            $table->string('status')->default('scheduled');
             $table->timestamps();
         });
     }

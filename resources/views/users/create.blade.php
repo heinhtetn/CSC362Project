@@ -6,7 +6,7 @@
     <div class="bg-white p-6 rounded shadow max-w-lg">
         <h2 class="text-xl font-bold mb-4">Create New User</h2>
 
-        <form action="{{ route('users.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4">
             @csrf
             <div>
                 <label class="block mb-1">Name</label>

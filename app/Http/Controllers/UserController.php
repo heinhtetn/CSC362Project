@@ -9,7 +9,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth:admin');
     }
 
     public function index()
@@ -35,7 +35,7 @@ class UserController extends Controller
 
         User::create($request->all());
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
 
     public function edit(User $user)
@@ -58,12 +58,18 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
-    public function destroy(User $user)
+    public function suspend(User $user)
     {
-        $user->delete();
-        return redirect()->route('users.index')->with('success', 'User deleted successfully.');
+        $user->update(['active' => false]);
+        return redirect()->route('admin.users.index')->with('success', 'User suspended successfully.');
+    }
+
+    public function activate(User $user)
+    {
+        $user->update(['active' => true]);
+        return redirect()->route('admin.users.index')->with('success', 'User activated successfully.');
     }
 }

@@ -6,7 +6,7 @@
     <div class="bg-white p-6 rounded shadow max-w-lg">
         <h2 class="text-xl font-bold mb-4">Edit User</h2>
 
-        <form action="{{ route('users.update', $user) }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.users.update', $user) }}" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
 

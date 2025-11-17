@@ -5,7 +5,8 @@
 @section('content')
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Jobs List</h2>
-        <a href="{{ route('jobs.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Job</a>
+        <a href="{{ route('admin.jobs.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add
+            Job</a>
     </div>
 
     <div class="overflow-x-auto bg-white rounded shadow">
@@ -27,12 +28,14 @@
                         <td class="px-4 py-2">{{ $job->location }}</td>
                         <td class="px-4 py-2">{{ $job->salary }}</td>
                         <td class="px-4 py-2 flex space-x-2">
-                            <a href="{{ route('jobs.edit', $job) }}" class="text-blue-500 hover:underline">Edit</a>
-                            <form action="{{ route('jobs.destroy', $job) }}" method="POST"
-                                onsubmit="return confirm('Delete this job?')" class="inline">
+                            <a href="{{ route('admin.jobs.edit', $job) }}" class="text-blue-500 hover:underline">Edit</a>
+                            <form action="{{ route('admin.jobs.destroy', $job) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-500 hover:underline">Delete</button>
+                                <button type="submit"
+                                    data-confirm="Are you sure you want to delete this job? This action cannot be undone."
+                                    data-confirm-title="Delete Job" data-confirm-type="delete" data-confirm-text="Delete"
+                                    class="text-red-500 hover:underline">Delete</button>
                             </form>
                         </td>
                     </tr>

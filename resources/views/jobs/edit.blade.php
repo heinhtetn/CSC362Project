@@ -6,7 +6,7 @@
     <div class="bg-white p-6 rounded shadow max-w-lg">
         <h2 class="text-xl font-bold mb-4">Edit Job</h2>
 
-        <form action="{{ route('jobs.update', $job) }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.jobs.update', $job) }}" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
 
