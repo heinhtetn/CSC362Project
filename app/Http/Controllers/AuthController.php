@@ -21,10 +21,23 @@ class AuthController extends Controller
         ]);
 
         if (Auth::guard('web')->attempt($credentials)) {
+            $user = Auth::user();
+            
+            // Check if user account is active
+            if (!$user->active) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                
+                return back()->withErrors([
+                    'email' => 'Your account has been suspended. Please contact support.',
+                ])->withInput($request->only('email'));
+            }
+            
             $request->session()->regenerate();
 
             // Check profile
-            if (!Auth::user()->jobSeeker) {
+            if (!$user->jobSeeker) {
                 return redirect()->route('jobseeker.create')
                     ->with('warning', 'Please complete your profile.');
             }
@@ -42,11 +55,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('web.login');
+        return redirect()->route('login');
     }
 
 
@@ -65,6 +74,6 @@ class AuthController extends Controller
 
         User::create($request->all());
 
-        return redirect()->route('web.login')->with('success', 'Account created successfully.');
+        return redirect()->route('login')->with('success', 'Account created successfully.');
     }
 }

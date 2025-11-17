@@ -10,10 +10,12 @@
                     class="text-gray-700 hover:text-blue-600 hover:underline {{ request()->routeIs('jobs.list') ? 'text-blue-600 font-semibold' : '' }}">
                     Jobs
                 </a>
+
                 <a href="/jobseeker/saved-jobs"
                     class="text-gray-700 hover:text-blue-600 hover:underline {{ request()->is('jobseeker/saved-jobs') ? 'text-blue-600 font-semibold' : '' }}">
                     Saved Jobs
                 </a>
+
                 <a href="/messages"
                     class="text-gray-700 hover:text-blue-600 hover:underline relative {{ request()->is('messages*') ? 'text-blue-600 font-semibold' : '' }}">
                     Messages
@@ -24,10 +26,13 @@
                         </span>
                     @endif
                 </a>
+
                 <a href="/jobseeker/profile"
                     class="text-gray-700 hover:text-blue-600 hover:underline {{ request()->is('jobseeker/profile*') ? 'text-blue-600 font-semibold' : '' }}">
                     Profile
                 </a>
+
+                {{-- Logout --}}
                 <form method="POST" action="{{ route('web.logout') }}" class="inline">
                     @csrf
                     <button type="submit" data-confirm="Are you sure you want to logout?" data-confirm-title="Logout"
@@ -37,10 +42,11 @@
                     </button>
                 </form>
             @else
-                <a href="{{ route('web.login') }}"
+                <a href="{{ route('login') }}"
                     class="text-gray-700 hover:text-blue-600 hover:underline {{ request()->is('login') ? 'text-blue-600 font-semibold' : '' }}">
                     Login
                 </a>
+
                 <a href="{{ route('web.register') }}"
                     class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors {{ request()->is('register') ? 'bg-blue-700' : '' }}">
                     Sign Up

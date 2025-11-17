@@ -2,6 +2,9 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $job->title }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
 </head>
@@ -44,17 +47,29 @@
                 <button class="mt-6 px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed font-medium" disabled>
                     Already Applied
                 </button>
-            @else
+            @elseif($canReapply)
                 <form method="POST" action="{{ route('jobs.apply', $job->id) }}"
                     class="mt-6 flex flex-col md:flex-row md:items-end md:space-x-3" enctype="multipart/form-data">
                     @csrf
-
                     <div class="flex-1 mb-3 md:mb-0">
                         <label class="block mb-2 font-semibold">Cover Letter (optional)</label>
                         <input type="file" name="cover_letter" class="w-full border p-2 rounded"
                             accept="application/pdf">
                     </div>
-
+                    <button type="submit"
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Re-Apply
+                    </button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('jobs.apply', $job->id) }}"
+                    class="mt-6 flex flex-col md:flex-row md:items-end md:space-x-3" enctype="multipart/form-data">
+                    @csrf
+                    <div class="flex-1 mb-3 md:mb-0">
+                        <label class="block mb-2 font-semibold">Cover Letter (optional)</label>
+                        <input type="file" name="cover_letter" class="w-full border p-2 rounded"
+                            accept="application/pdf">
+                    </div>
                     <button type="submit"
                         class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
                         Apply Now
@@ -82,7 +97,7 @@
             <div class="mt-6 bg-yellow-100 p-4 rounded">
                 <p>
                     Please
-                    <a href="{{ route('web.login') }}" class="text-blue-600 underline">login</a>
+                    <a href="{{ route('login') }}" class="text-blue-600 underline">login</a>
                     to apply or save this job.
                 </p>
             </div>

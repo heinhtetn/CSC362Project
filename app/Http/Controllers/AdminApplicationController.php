@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Application;
-use App\Models\Job;
-use App\Models\Message;
 use App\Models\Interview;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -19,13 +18,9 @@ class AdminApplicationController extends Controller
     public function index()
     {
         $admin = Auth::guard('admin')->user();
-        
-        // Get applications for jobs created by this admin
-        $applications = Application::with(['user', 'job', 'interview', 'messages'])
-            ->whereHas('job', function ($query) use ($admin) {
-                $query->where('admin_id', $admin->id);
-            })
-            ->where('status', 'pending')
+
+        $applications = Application::with(['user.jobSeeker', 'job', 'interview', 'messages'])
+            ->whereHas('job', fn($q) => $q->where('admin_id', $admin->id))
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -35,25 +30,22 @@ class AdminApplicationController extends Controller
     public function show(Application $application)
     {
         $admin = Auth::guard('admin')->user();
-        
-        // Verify admin owns this job
+
         if ($application->job->admin_id !== $admin->id) {
             abort(403, 'Unauthorized access');
         }
 
-        $application->load(['user', 'job', 'interview', 'messages']);
+        $application->load(['user.jobSeeker', 'job', 'interview', 'messages']);
 
-        return view('admin.applications.show', compact('application'));
+        $resume = optional($application->user->jobSeeker)->resume;
+
+        return view('admin.applications.show', compact('application', 'resume'));
     }
 
     public function scheduleInterview(Request $request, Application $application)
     {
         $admin = Auth::guard('admin')->user();
-        
-        // Verify admin owns this job
-        if ($application->job->admin_id !== $admin->id) {
-            abort(403, 'Unauthorized access');
-        }
+        if ($application->job->admin_id !== $admin->id) abort(403);
 
         $request->validate([
             'scheduled_at' => 'required|date|after:now',
@@ -61,7 +53,6 @@ class AdminApplicationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Create interview
         $interview = Interview::updateOrCreate(
             ['application_id' => $application->id],
             [
@@ -72,47 +63,35 @@ class AdminApplicationController extends Controller
             ]
         );
 
-        // Update application status
         $application->update(['status' => 'interview_scheduled']);
 
-        // Create message for user
         Message::create([
-            'sender_id' => $admin->id, // Admin sends message
+            'sender_id' => $admin->id,
             'receiver_id' => $application->user_id,
             'application_id' => $application->id,
-            'content' => "You have been scheduled for an interview for the position: {$application->job->title}. " .
-                        "Date: " . date('F j, Y \a\t g:i A', strtotime($request->scheduled_at)) .
-                        ($request->location ? ". Location: {$request->location}" : "") .
-                        ($request->notes ? ". Notes: {$request->notes}" : ""),
+            'content' => "You have been scheduled for an interview for {$application->job->title}. " .
+                "Date: " . date('F j, Y \a\t g:i A', strtotime($request->scheduled_at)) .
+                ($request->location ? ". Location: {$request->location}" : "") .
+                ($request->notes ? ". Notes: {$request->notes}" : ""),
             'type' => 'interview',
             'is_read' => false,
         ]);
 
-        return redirect()->route('admin.applications.index')
+        return redirect()->route('admin.applications.show', $application)
             ->with('success', 'Interview scheduled successfully!');
     }
 
     public function decline(Request $request, Application $application)
     {
         $admin = Auth::guard('admin')->user();
-        
-        // Verify admin owns this job
-        if ($application->job->admin_id !== $admin->id) {
-            abort(403, 'Unauthorized access');
-        }
+        if ($application->job->admin_id !== $admin->id) abort(403);
 
-        $request->validate([
-            'reason' => 'nullable|string|max:500',
-        ]);
+        $request->validate(['reason' => 'nullable|string|max:500']);
 
-        // Update application status
         $application->update(['status' => 'rejected']);
 
-        // Create message for user
-        $messageContent = "We regret to inform you that your application for the position: {$application->job->title} has been declined.";
-        if ($request->reason) {
-            $messageContent .= " Reason: {$request->reason}";
-        }
+        $messageContent = "We regret to inform you that your application for {$application->job->title} has been declined.";
+        if ($request->reason) $messageContent .= " Reason: {$request->reason}";
 
         Message::create([
             'sender_id' => $admin->id,
@@ -123,33 +102,27 @@ class AdminApplicationController extends Controller
             'is_read' => false,
         ]);
 
-        return redirect()->route('admin.applications.index')
+        return redirect()->route('admin.applications.show', $application)
             ->with('success', 'Application declined and user notified.');
     }
 
     public function accept(Application $application)
     {
         $admin = Auth::guard('admin')->user();
-        
-        // Verify admin owns this job
-        if ($application->job->admin_id !== $admin->id) {
-            abort(403, 'Unauthorized access');
-        }
+        if ($application->job->admin_id !== $admin->id) abort(403);
 
-        // Update application status
         $application->update(['status' => 'accepted']);
 
-        // Create message for user
         Message::create([
             'sender_id' => $admin->id,
             'receiver_id' => $application->user_id,
             'application_id' => $application->id,
-            'content' => "Congratulations! Your application for the position: {$application->job->title} has been accepted. We will contact you soon with further details.",
+            'content' => "Congratulations! Your application for {$application->job->title} has been accepted.",
             'type' => 'acceptance',
             'is_read' => false,
         ]);
 
-        return redirect()->route('admin.applications.index')
+        return redirect()->route('admin.applications.show', $application)
             ->with('success', 'Application accepted and user notified.');
     }
 }

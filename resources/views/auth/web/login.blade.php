@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-6">
     <div class="max-w-md mx-auto bg-white p-6 rounded shadow items-center justify-center">
         <h1 class="text-2xl font-bold mb-4 text-center">Job Seeker Login</h1>
-        <form method="POST" action="{{ route('web.login.post') }}">
+        <form method="POST" action="{{ route('login.post') }}">
             @csrf
 
             @if ($errors->any())

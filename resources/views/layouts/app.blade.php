@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel - @yield('title')</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -36,6 +37,8 @@
                             class="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">{{ $pendingCount }}</span>
                     @endif
                 </a>
+                <a href="{{ route('admin.documentation') }}"
+                    class="block px-6 py-3 hover:bg-gray-100 {{ request()->routeIs('admin.documentation') ? 'bg-gray-100 font-bold' : '' }}">Documentation</a>
             </nav>
         </aside>
 
@@ -71,134 +74,74 @@
                         class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                         Cancel
                     </button>
-                    <form id="modalForm" method="POST" class="inline">
-                        @csrf
-                        <button id="modalConfirm" type="submit"
-                            class="px-4 py-2 text-white rounded-lg transition-colors">
-                        </button>
-                    </form>
+                    <button id="modalConfirm" type="button" class="px-4 py-2 text-white rounded-lg transition-colors">
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Confirmation Modal Handler
+        // Confirmation Modal Handler ONLY
         document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('confirmModal');
             const modalTitle = document.getElementById('modalTitle');
             const modalMessage = document.getElementById('modalMessage');
             const modalIcon = document.getElementById('modalIcon');
-            const modalForm = document.getElementById('modalForm');
             const modalConfirm = document.getElementById('modalConfirm');
             const modalCancel = document.getElementById('modalCancel');
+            let activeForm = null;
 
-            // Handle all confirmation triggers
             document.querySelectorAll('[data-confirm]').forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
+                    activeForm = this.closest('form');
 
-                    const form = this.closest('form');
-                    const title = this.getAttribute('data-confirm-title') || 'Confirm Action';
-                    const message = this.getAttribute('data-confirm') || 'Are you sure?';
-                    const type = this.getAttribute('data-confirm-type') || 'danger';
-                    const confirmText = this.getAttribute('data-confirm-text') || 'Confirm';
+                    modalTitle.textContent = this.dataset.confirmTitle || 'Confirm Action';
+                    modalMessage.textContent = this.dataset.confirm || 'Are you sure?';
+                    modalConfirm.textContent = this.dataset.confirmText || 'Confirm';
 
-                    // Set modal content
-                    modalTitle.textContent = title;
-                    modalMessage.textContent = message;
-                    modalConfirm.textContent = confirmText;
-
-                    // Set icon based on type
+                    // Set icon and button color
+                    const type = this.dataset.confirmType || 'warning';
                     let iconHtml = '';
                     let confirmClass = '';
                     if (type === 'danger' || type === 'delete') {
                         iconHtml =
-                            '<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                            '<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.06 19h15.88c1.54 0 2.5-1.667 1.73-3L13.73 4c-.77-1.333-2.69-1.333-3.46 0L2.33 16c-.77 1.333.19 3 1.73 3z"/></svg>';
                         confirmClass = 'bg-red-600 hover:bg-red-700';
-                    } else if (type === 'warning' || type === 'suspend') {
-                        iconHtml =
-                            '<svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>';
+                    } else if (type === 'warning') {
+                        iconHtml = '<svg class="w-6 h-6 text-orange-600" ...></svg>';
                         confirmClass = 'bg-orange-600 hover:bg-orange-700';
-                    } else if (type === 'success' || type === 'activate' || type === 'accept') {
-                        iconHtml =
-                            '<svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-                        confirmClass = 'bg-green-600 hover:bg-green-700';
                     } else {
-                        iconHtml =
-                            '<svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+                        iconHtml = '<svg class="w-6 h-6 text-blue-600" ...></svg>';
                         confirmClass = 'bg-blue-600 hover:bg-blue-700';
                     }
-
                     modalIcon.innerHTML = iconHtml;
-                    modalConfirm.className = 'px-4 py-2 text-white rounded-lg transition-colors ' +
-                        confirmClass;
+                    modalConfirm.className = 'px-4 py-2 text-white rounded-lg ' + confirmClass;
 
-                    // Clone form data
-                    modalForm.action = form.action;
-                    modalForm.method = form.method;
-
-                    // Store the confirm button text and class before clearing
-                    modalForm.innerHTML = '';
-
-                    // Add CSRF token first
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = form.querySelector('input[name="_token"]')?.value || '';
-                    modalForm.appendChild(csrfInput);
-
-                    // Copy all form inputs (hidden, textarea, select, and other inputs)
-                    Array.from(form.elements).forEach(element => {
-                        if (element.name && element.type !== 'submit' && element.type !==
-                            'button') {
-                            const clone = element.cloneNode(true);
-
-                            // Handle different input types
-                            if (element.type === 'checkbox' || element.type === 'radio') {
-                                if (element.checked) {
-                                    clone.style.display = 'none';
-                                    modalForm.appendChild(clone);
-                                }
-                            } else {
-                                // For textarea, select, hidden, and text inputs
-                                if (element.tagName === 'TEXTAREA' || element.tagName ===
-                                    'SELECT') {
-                                    clone.style.display = 'none';
-                                } else if (element.type !== 'hidden') {
-                                    clone.style.display = 'none';
-                                }
-                                modalForm.appendChild(clone);
-                            }
-                        }
-                    });
-
-                    // Create and add the confirm button with proper text and styling
-                    const confirmBtn = document.createElement('button');
-                    confirmBtn.type = 'submit';
-                    confirmBtn.id = 'modalConfirm';
-                    confirmBtn.textContent = confirmText;
-                    confirmBtn.className = 'px-4 py-2 text-white rounded-lg transition-colors ' +
-                        confirmClass;
-                    modalForm.appendChild(confirmBtn);
-
-                    // Update the reference for future use
-                    const newConfirmButton = document.getElementById('modalConfirm');
-
-                    // Show modal
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
                 });
             });
 
-            // Close modal handlers
+            modalConfirm.addEventListener('click', function() {
+                if (activeForm) {
+                    activeForm.submit();
+                    activeForm = null;
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            });
+
             modalCancel.addEventListener('click', function() {
+                activeForm = null;
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             });
 
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
+                    activeForm = null;
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
                 }

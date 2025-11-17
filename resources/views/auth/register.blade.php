@@ -32,7 +32,7 @@
             </div>
             <button class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Register</button>
         </form>
-        <p class="mt-4 text-center">Already have an account? <a href="{{ route('web.login') }}"
+        <p class="mt-4 text-center">Already have an account? <a href="{{ route('login') }}"
                 class="text-blue-500 hover:underline">Login</a></p>
     </div>
 

@@ -2,6 +2,9 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>JobHunter - Jobs</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss/dist/tailwind.min.css">
 </head>
@@ -18,13 +21,20 @@
             @foreach ($jobs as $job)
                 <div class="p-4 bg-white shadow rounded">
                     <h3 class="text-xl font-semibold">{{ $job->title }}</h3>
-                    <p class="text-gray-700">{{ $job->company }}</p>
+                    <p class="text-gray-700">{{ $job->admin->name ?? 'Company' }}</p>
                     <p class="text-gray-500 text-sm mb-2">{{ $job->location }}</p>
-                    <p class="mb-4">{{ $job->description }}</p>
+                    @if ($job->salary)
+                        <p class="text-green-600 font-semibold mb-2">${{ number_format($job->salary, 2) }}</p>
+                    @endif
+                    <p class="mb-4">{{ Str::limit($job->description, 150) }}</p>
                     <a href="/jobs/{{ $job->id }}"
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">View</a>
                 </div>
             @endforeach
+        </div>
+
+        <div class="mt-6">
+            {{ $jobs->links() }}
         </div>
     </div>
 

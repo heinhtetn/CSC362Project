@@ -44,30 +44,45 @@
             </div>
         @endif
 
-        @if ($application->interview)
-            <div class="mb-6 p-4 bg-blue-50 rounded border border-blue-200">
-                <h3 class="font-semibold text-blue-900 mb-2">Scheduled Interview</h3>
-                <p class="text-sm text-blue-800">
-                    <strong>Date:</strong> {{ $application->interview->scheduled_at->format('F j, Y g:i A') }}
-                </p>
-                @if ($application->interview->location)
-                    <p class="text-sm text-blue-800">
-                        <strong>Location:</strong> {{ $application->interview->location }}
-                    </p>
-                @endif
-                @if ($application->interview->notes)
-                    <p class="text-sm text-blue-800 mt-2">
-                        <strong>Notes:</strong> {{ $application->interview->notes }}
-                    </p>
-                @endif
+        @if ($resume)
+            <div class="mb-6 p-4 bg-gray-50 rounded border">
+                <h3 class="font-semibold mb-2">Resume</h3>
+                <a href="{{ asset('storage/' . $resume) }}" target="_blank"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    View Resume
+                </a>
             </div>
         @endif
+
+        @if ($application->interview)
+            <div class="mb-6 p-4 bg-blue-50 rounded border border-blue-200 flex justify-between items-start">
+                <div>
+                    <h3 class="font-semibold text-blue-900 mb-2">Scheduled Interview</h3>
+                    <p class="text-sm text-blue-800">
+                        <strong>Date:</strong>
+                        {{ \Carbon\Carbon::parse($application->interview->scheduled_at)->format('F j, Y g:i A') }}
+                    </p>
+                    @if ($application->interview->location)
+                        <p class="text-sm text-blue-800"><strong>Location:</strong> {{ $application->interview->location }}
+                        </p>
+                    @endif
+                    @if ($application->interview->notes)
+                        <p class="text-sm text-blue-800 mt-2"><strong>Notes:</strong> {{ $application->interview->notes }}
+                        </p>
+                    @endif
+                </div>
+                <div>
+                    <a href="{{ route('admin.interviews.edit', $application) }}"
+                        class="px-3 py-1 text-sm bg-yellow-400 text-white rounded hover:bg-yellow-500">Edit</a>
+                </div>
+            </div>
+        @endif
+
     </div>
 
     @if ($application->status === 'pending')
         <div class="bg-white rounded shadow p-6">
             <h3 class="text-xl font-bold mb-4">Take Action</h3>
-
             <div class="space-y-4">
                 <!-- Schedule Interview -->
                 <div class="border rounded p-4">
@@ -88,12 +103,10 @@
                         </div>
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                            <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2"
-                                placeholder="Additional information for the candidate"></textarea>
+                            <textarea name="notes" rows="3" class="w-full border rounded px-3 py-2" placeholder="Additional info"></textarea>
                         </div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                            Schedule Interview
-                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Schedule
+                            Interview</button>
                     </form>
                 </div>
 
@@ -102,32 +115,22 @@
                     <h4 class="font-semibold mb-3">Accept Application</h4>
                     <form action="{{ route('admin.applications.accept', $application) }}" method="POST">
                         @csrf
-                        <button type="submit"
-                            data-confirm="Are you sure you want to accept this application? The applicant will be notified."
-                            data-confirm-title="Accept Application" data-confirm-type="accept"
-                            data-confirm-text="Accept Application"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                            Accept Application
-                        </button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Accept
+                            Application</button>
                     </form>
                 </div>
 
                 <!-- Decline Application -->
                 <div class="border rounded p-4">
                     <h4 class="font-semibold mb-3">Decline Application</h4>
-                    <form action="{{ route('admin.applications.decline', $application) }}" method="POST" id="declineForm">
+                    <form action="{{ route('admin.applications.decline', $application) }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
                             <textarea name="reason" rows="2" class="w-full border rounded px-3 py-2" placeholder="Reason for declining"></textarea>
                         </div>
-                        <button type="submit"
-                            data-confirm="Are you sure you want to decline this application? The applicant will be notified."
-                            data-confirm-title="Decline Application" data-confirm-type="danger"
-                            data-confirm-text="Decline Application"
-                            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                            Decline Application
-                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Decline
+                            Application</button>
                     </form>
                 </div>
             </div>

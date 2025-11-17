@@ -12,7 +12,7 @@ class FrontendController extends Controller
 {
     public function list()
     {
-        $jobs = Job::all();
+        $jobs = Job::with('admin')->paginate(12);
         return view('jobs', compact('jobs'));
     }
     public function show($id)
@@ -21,12 +21,21 @@ class FrontendController extends Controller
         $user = Auth::guard('web')->user();
 
         $alreadyApplied = false;
+        $canReapply = false; // New flag
         $alreadySaved = false;
 
         if ($user) {
-            $alreadyApplied = Application::where('user_id', $user->id)
+            $existingApplication = Application::where('user_id', $user->id)
                 ->where('job_id', $job->id)
-                ->exists();
+                ->first();
+
+            if ($existingApplication) {
+                if ($existingApplication->status === 'rejected') {
+                    $canReapply = true; // allow re-apply
+                } else {
+                    $alreadyApplied = true;
+                }
+            }
 
             if ($user->jobSeeker) {
                 $alreadySaved = SavedJob::where('job_id', $job->id)
@@ -35,8 +44,9 @@ class FrontendController extends Controller
             }
         }
 
-        return view('job-details', compact('job', 'alreadyApplied', 'alreadySaved'));
+        return view('job-details', compact('job', 'alreadyApplied', 'canReapply', 'alreadySaved'));
     }
+
 
     public function apply(Request $request, $id)
     {
@@ -46,16 +56,30 @@ class FrontendController extends Controller
         // Fetch job seeker profile
         $jobSeeker = $user->jobSeeker;
 
-        // Prevent double application
+        // Check for an existing application
         $existing = Application::where('user_id', $user->id)
             ->where('job_id', $job->id)
             ->first();
 
-        if ($existing) {
+        if ($existing && $existing->status !== 'rejected') {
+            // User cannot apply again unless previous application was rejected
             return redirect()->route('jobs.show', $id)
                 ->with('info', 'You have already applied for this job.');
         }
 
+        if ($existing && $existing->status === 'rejected') {
+            // Update the rejected application instead of creating a new one
+            $existing->update([
+                'status' => 'pending',
+                'cover_letter' => $request->input('cover_letter'),
+                'updated_at' => now(),
+            ]);
+
+            return redirect()->route('jobs.show', $id)
+                ->with('success', 'You have re-applied successfully!');
+        }
+
+        // No previous application, create a new one
         Application::create([
             'user_id' => $user->id,
             'job_id' => $job->id,
@@ -66,6 +90,7 @@ class FrontendController extends Controller
         return redirect()->route('jobs.show', $id)
             ->with('success', 'Application submitted successfully!');
     }
+
 
 
     public function save(Request $request, $id)
